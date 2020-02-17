@@ -48,6 +48,6 @@ export declare class TreeControl extends HTMLElement {
     set freeze_leaf_pane_dimensions(val: boolean);
     private onFocusIn;
     get selectedItem(): any;
-    takeFocus(): void;
+    focus(): void;
     focusFirstBranch(): boolean;
 }

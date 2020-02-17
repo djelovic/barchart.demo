@@ -2,7 +2,7 @@ import { setDataContext, getDataContext } from './data_binding.js';
 import { getObjectMonitor } from '../utilities/object_monitoring.js';
 import { ArgumetOutOfRangeError, InvalidStateError } from '../utilities/exceptions.js';
 import { first, indexOfOrEnd, indexOf } from '../utilities/iterables.js';
-import { getTemplateById, getFocusableDescendants, tryGetLoneElement, isFocusWithin, firstFocusableDescendant } from './dom.js';
+import { getTemplateById, getFocusableDescendants, tryGetLoneElement, isFocusWithin, firstFocusableDescendant, firstFocusableDescendantAndSelf } from './dom.js';
 function toSpan(text) {
     const span = document.createElement('span');
     span.appendChild(document.createTextNode(text));
@@ -631,7 +631,21 @@ export class ListBox extends HTMLElement {
         }
     }
     getItem(index) {
+        if (!Number.isInteger(index) || index < 0 || index >= this.itemCount) {
+            throw new ArgumetOutOfRangeError('Index must be an integer between 0 and number of items.');
+        }
         return getDataContext(this._root.children[index]);
+    }
+    focus() {
+        var _a;
+        if (isFocusWithin(this._root))
+            return;
+        if (this.selectedIndex >= 0) {
+            (_a = firstFocusableDescendantAndSelf(this._root.children[this.selectedIndex])) === null || _a === void 0 ? void 0 : _a.focus();
+        }
+        else {
+            this._root.focus();
+        }
     }
 }
 customElements.define('list-box', ListBox);

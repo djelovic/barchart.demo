@@ -30,7 +30,6 @@ export class SymbolBrowser extends HTMLElement {
 
                     --clear-search-font-family: codicon;
                     --clear-search-glyph: "\\eaB8";
-                    --search-text-border-bottom: 1px solid #D9D9D9;
 
                     --selection-background: #eaf5ff;
                     --selection-border: #e5f3ff solid 1px;
@@ -44,7 +43,7 @@ export class SymbolBrowser extends HTMLElement {
                 }
                 ._input-container {
                     flex: 0 0 auto;
-                    border-bottom: var(--search-text-border-bottom);
+                    border-bottom: inherit;
                     display: flex;
                     flex-direction: row;
                 }
@@ -210,7 +209,7 @@ export class SymbolBrowser extends HTMLElement {
         if (ev.key === 'Escape') {
             this._searchInput.value = '';
             this.searchString = '';
-            this._treeControl.takeFocus();
+            this._treeControl.focus();
             ev.stopPropagation();
             ev.preventDefault();
         }
@@ -277,8 +276,8 @@ export class SymbolBrowser extends HTMLElement {
             }
         }
     }
-    takeFocus() {
-        this._treeControl.takeFocus();
+    focus() {
+        this._treeControl.focus();
     }
 }
 customElements.define('symbol-browser', SymbolBrowser);

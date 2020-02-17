@@ -49,4 +49,5 @@ export declare class ListBox extends HTMLElement {
     set selectedIndex(index: number);
     get itemCount(): number;
     getItem(index: number): any;
+    focus(): void;
 }

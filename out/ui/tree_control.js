@@ -60,6 +60,7 @@ export class TreeControl extends HTMLElement {
                     user-select: none;
                     cursor: default;
                     justify-items: start;
+                    grid-auto-rows: min-content;
                 }
                 :host > .tree_panel {
                     padding: var(--padding);
@@ -95,6 +96,9 @@ export class TreeControl extends HTMLElement {
                 ._open > .tree_panel {
                     display: grid;
                 }
+                ._loading > _tree_panel {
+                    display: none;
+                }
                 ._branch > :first-child {
                     outline: none;
                     border: var(--selection-border);
@@ -117,6 +121,9 @@ export class TreeControl extends HTMLElement {
                     animation-duration: var(--progress-speed);
                     animation-name: progress_bar;
                     animation-iteration-count: infinite;
+                }
+                .tree_panel > ._loading > :first-child::after {
+                    margin-bottom: -1px;
                 }
                 .tree_panel._loading::before {
                     grid-column: 1 / span 2;
@@ -616,7 +623,7 @@ export class TreeControl extends HTMLElement {
     get selectedItem() {
         return this._selectedBranch !== undefined ? getDataContext(this._selectedBranch) : undefined;
     }
-    takeFocus() {
+    focus() {
         if (this._selectedBranch === undefined) {
             this._root.focus();
         }

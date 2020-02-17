@@ -15,5 +15,5 @@ export declare class SymbolBrowser extends HTMLElement {
     private onSearchResultsKeyDown;
     private onClearButtonClicked;
     private onSymbolConfirmed;
-    takeFocus(): void;
+    focus(): void;
 }

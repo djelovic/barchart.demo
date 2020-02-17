@@ -5,3 +5,6 @@ export declare function last<T>(iterable: Iterable<T>, condition?: (arg: T) => b
 export declare function indexOf<T>(iterable: Iterable<T>, val: T): number;
 export declare function indexOfOrEnd<T>(iterable: Iterable<T>, val: T): number;
 export declare function where<T>(iterable: Iterable<T>, condition: (arg: T) => boolean): Generator<T, void, unknown>;
+export declare function map<T, R>(iterable: Iterable<T>, func: (arg: T) => R): Iterable<R>;
+export declare function all<T>(iterable: Iterable<T>, condition: (arg: T) => boolean): boolean;
+export declare function any<T>(iterable: Iterable<T>, condition?: (arg: T) => boolean): boolean;

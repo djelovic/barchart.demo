@@ -70,4 +70,30 @@ export function* where(iterable, condition) {
             yield a;
     }
 }
+export function* map(iterable, func) {
+    for (const a of iterable) {
+        yield func(a);
+    }
+}
+export function all(iterable, condition) {
+    for (const a of iterable) {
+        if (!condition(a))
+            return false;
+    }
+    return true;
+}
+export function any(iterable, condition) {
+    if (condition === undefined) {
+        for (const _ of iterable) {
+            return true;
+        }
+    }
+    else {
+        for (const a of iterable) {
+            if (condition(a))
+                return true;
+        }
+    }
+    return false;
+}
 //# sourceMappingURL=iterables.js.map

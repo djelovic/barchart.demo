@@ -27,5 +27,5 @@ resultsList.addEventListener('click', ev => {
         ev.preventDefault();
     }
 });
-symbolBrowser.takeFocus();
+symbolBrowser.focus();
 //# sourceMappingURL=uitests.js.map

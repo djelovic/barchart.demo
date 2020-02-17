@@ -1,3 +1,5 @@
+import { evaluateAndGetDependencies, getObjectMonitor } from '../utilities/object_monitoring.js';
+import { post, cancelPost } from './event_queue.js';
 const _dataContexts = new WeakMap();
 function updateDataContextRecursively(el, context) {
     if (_dataContexts.get(el) !== undefined)
@@ -10,12 +12,14 @@ function updateDataContextRecursively(el, context) {
 function updateChildrenDataContextRecursively(el, context) {
     if (el.shadowRoot !== null) {
         for (const ch of el.shadowRoot.children) {
-            updateDataContextRecursively(ch, context);
+            if (ch instanceof HTMLElement)
+                updateDataContextRecursively(ch, context);
         }
     }
     else {
         for (const ch of el.children) {
-            updateDataContextRecursively(ch, context);
+            if (ch instanceof HTMLElement)
+                updateDataContextRecursively(ch, context);
         }
     }
 }
@@ -48,6 +52,7 @@ export class TextBinding extends HTMLElement {
     constructor() {
         super();
         this._dataContext = undefined;
+        this._dirty = false;
         this._shadow = this.attachShadow({ mode: 'open' });
     }
     static get observedAttributes() { return ['binding']; }
@@ -83,6 +88,12 @@ export class TextBinding extends HTMLElement {
         this._shadow.innerHTML = '';
         this._text = undefined;
         this.dataContext = undefined;
+        this.unsubscribeFromDependencies();
+        this._dirty = false;
+        if (this._postId !== undefined) {
+            cancelPost(this._postId);
+            this._postId = undefined;
+        }
     }
     adoptedCallback() {
         this._dataContext = getDataContext(this);
@@ -95,33 +106,86 @@ export class TextBinding extends HTMLElement {
             }
         }
     }
+    unsubscribeFromDependencies() {
+        if (this._dependsOn !== undefined) {
+            for (const a of this._dependsOn) {
+                if (a instanceof Array) {
+                    const monitor = getObjectMonitor(a);
+                    monitor.removeArrayListener(this);
+                }
+                else {
+                    const monitor = getObjectMonitor(a);
+                    monitor.removePropertyChangedListener(this);
+                }
+            }
+            this._dependsOn.splice(0, this._dependsOn.length);
+        }
+    }
     evaluate() {
         var _a;
+        this.unsubscribeFromDependencies();
+        this._dirty = false;
+        if (this._postId !== undefined) {
+            cancelPost(this._postId);
+            this._postId = undefined;
+        }
         const binding = this.binding;
         if (binding === null) {
             return '';
         }
         else {
+            if (this._dependsOn === undefined)
+                this._dependsOn = [];
+            let ret;
             try {
-                let result = function (str) {
-                    return eval(str);
-                }.call(this.dataContext, binding);
+                const result = evaluateAndGetDependencies(this.dataContext, binding, this._dependsOn);
                 if (result === undefined) {
-                    return '<undefined>';
+                    ret = '<undefined>';
                 }
                 else if (typeof result == 'string') {
-                    return result;
+                    ret = result;
                 }
                 else if (typeof result.toString === 'function') {
-                    return result.toString();
+                    ret = result.toString();
                 }
                 else {
-                    return _a = typeof result, (_a !== null && _a !== void 0 ? _a : '<unknown>');
+                    ret = (_a = typeof result, (_a !== null && _a !== void 0 ? _a : '<unknown>'));
                 }
             }
             catch (err) {
-                return '<error>';
+                ret = '<error>';
             }
+            if (this._dependsOn.length > 0) {
+                for (const a of this._dependsOn) {
+                    if (a instanceof Array) {
+                        const monitor = getObjectMonitor(a);
+                        monitor.addArrayListener(this);
+                    }
+                    else {
+                        const monitor = getObjectMonitor(a);
+                        monitor.addPropertyChangedListener(this);
+                    }
+                }
+            }
+            return ret;
+        }
+    }
+    arrayChangedCallback(target, index, inserted, deleted) {
+        this.onDependencyChanged();
+    }
+    propertyChangedCallback(target, property) {
+        this.onDependencyChanged();
+    }
+    onDependencyChanged() {
+        if (this._dirty)
+            return;
+        this._dirty = true;
+        this._postId = post(this);
+    }
+    postCallback() {
+        this._dirty = false;
+        if (this._text !== undefined) { // this should always be the case, I'm just paranoid
+            this._text.nodeValue = this.evaluate();
         }
     }
 }
